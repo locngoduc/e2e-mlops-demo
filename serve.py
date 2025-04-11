@@ -4,15 +4,15 @@ import pandas as pd
 
 app = Flask(__name__)
 
-# Thiết lập MLFlow
+# Set up MLFlow
 mlflow.set_tracking_uri("http://localhost:5000")
 
 try:
-    # Cách 1: Load model đã được promote (thay thế cho stage Production)
+    # Option 1: Load the promoted model (replacing the Production stage)
     model = mlflow.pyfunc.load_model("models:/IrisRF@champion")
 except:
     try:
-        # Cách 2: Load version mới nhất nếu không có model promoted
+        # Option 2: Load the latest version of the model
         model = mlflow.pyfunc.load_model("models:/IrisRF/latest")
         print("Using latest version instead of promoted model")
     except Exception as e:
@@ -32,7 +32,9 @@ def predict():
                     "petal length (cm)", "petal width (cm)"])
         
         prediction = model.predict(input_data)
-        return jsonify({"species": int(prediction[0])})
+        # Convert prediction to species name
+        label_map = {0: "setosa", 1: "versicolor", 2: "virginica"}
+        return jsonify({"species": label_map[int(prediction[0])]})
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
